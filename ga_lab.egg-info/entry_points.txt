@@ -1,0 +1,2 @@
+[console_scripts]
+ga-lab = ga_lab.cli:main

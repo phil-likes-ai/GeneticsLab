@@ -1,0 +1,47 @@
+{
+  "simulation": {
+    "initial_balance": 10000
+  },
+  "genetic_algorithm": {
+    "parameters": {
+      "population_size": 30,
+      "mutation_rate": 0.15,
+      "crossover_rate": 0.7,
+      "elite_size": 4,
+      "generations_to_evolve": 10,
+      "tournament_k": 5,
+      "mutation_step_divisor": 10
+    },
+    "param_ranges": {
+      "rsi_length": [8, 20],
+      "macd_fast": [8, 15],
+      "macd_slow": [20, 35],
+      "macd_signal": [6, 12],
+      "bb_length": [15, 30],
+      "bb_std": [1.5, 3.0],
+      "ema_short_lengths": [5, 15],
+      "ema_long_lengths": [20, 55],
+      "stoch_k": [10, 20],
+      "stoch_d": [3, 7],
+      "stoch_smooth_k": [3, 7],
+      "atr_length": [10, 21]
+    },
+    "threshold_ranges": {
+      "rsi_oversold": [20, 35],
+      "rsi_overbought": [65, 80],
+      "stoch_oversold": [15, 30],
+      "stoch_overbought": [70, 85],
+      "buy_strength": [0.3, 0.7],
+      "sell_strength": [0.3, 0.7],
+      "sl_atr_mult": [1.0, 3.0],
+      "tp_atr_mult": [1.0, 4.0]
+    },
+    "weight_ranges": {
+      "rsi": [0.1, 1.0],
+      "macd": [0.1, 1.0],
+      "bollinger": [0.1, 1.0],
+      "ema_cross": [0.1, 1.0],
+      "stochastic": [0.1, 1.0]
+    }
+  }
+}

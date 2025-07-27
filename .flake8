@@ -1,0 +1,17 @@
+# .flake8  – relaxed rules for GA laboratory
+
+[flake8]
+max-line-length = 120
+extend-ignore = 
+    E203,  # spacing handled by black / yapf
+    W503,  # line break before binary operator
+    E266,  # inline comments (allow ###, TODO)
+    E402,  # module level import not at top (needed for some CLI scripts)
+    E501,  # (redundant with max-line-length)
+    D401,  # docstring should start with imperative mood
+exclude = 
+    .git,
+    .venv,
+    __pycache__,
+    build,
+    dist

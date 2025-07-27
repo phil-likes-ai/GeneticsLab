@@ -1,0 +1,10 @@
+# requirements.txt
+pandas
+numpy>=1.25
+tqdm>=4.66.0
+black==24.3.0
+flake8==7.0.0
+mypy==1.10.0
+matplotlib
+ccxt
+seaborn>=0.13
