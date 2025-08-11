@@ -1,22 +1,182 @@
 {
   "defaults": {
-    "since": "2024-01-01"
+    "since": "2019-01-01"
   },
   "markets": [
     {
       "exchange": "binance",
       "symbol": "BTC/USDT",
-      "timeframes": ["1m","5m","15m","1h", "4h", "1d"]
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
     },
     {
       "exchange": "binance",
+      "symbol": "BTC/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "kucoin",
+      "symbol": "BTC/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "kucoin",
       "symbol": "ETH/USDT",
-      "timeframes": ["1m", "5m","15m","1h", "4h", "1d"]
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
     },
     {
       "exchange": "binance",
       "symbol": "BNB/USDT",
-      "timeframes": ["1m", "5m","15m","1h", "4h", "1d"]
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "XRP/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "DOGE/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "LTC/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "DOT/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "ADA/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "PEPE/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "SHIB/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "SOL/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "TRX/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "UNI/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "LINK/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "AAVE/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "XLM/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "LEO/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "AXS/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "FTT/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "BCH/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "ALGO/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "ATOM/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "AVAX/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "CRO/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "FIL/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "FTM/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "ICP/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "NEAR/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "ONE/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "XMR/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "XTZ/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "YFI/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
+    },
+    {
+      "exchange": "binance",
+      "symbol": "ZEC/USDT",
+      "timeframes": ["1m", "5m", "15m", "1h", "4h", "1d"]
     }
   ]
 }

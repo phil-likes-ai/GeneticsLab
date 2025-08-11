@@ -4,24 +4,48 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import re
 
 from .indicators import Indicators
 from .strategy import GeneticStrategy
+
+
+def _safe_filename(seed: str) -> str:
+    """
+    Return a filesystem-safe filename fragment from the provided seed.
+
+    - Allows only characters in [A-Za-z0-9._-]
+    - Replaces any other character with "_"
+    - Collapses consecutive "_" into a single "_"
+    - Truncates to a maximum length of 100 characters
+
+    This is unit-safe and deterministic for identical inputs.
+    """
+    # Whitelist allowed characters; replace others with "_"
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", seed)
+    # Collapse duplicate underscores
+    sanitized = re.sub(r"_+", "_", sanitized)
+    # Trim leading/trailing underscores that can appear after collapse
+    sanitized = sanitized.strip("_")
+    # Enforce a conservative length limit
+    return sanitized[:100] if len(sanitized) > 100 else sanitized
 
 
 class Backtester:
     """Runs a single strategy against historical data and calculates performance metrics."""
 
     @staticmethod
-    def plot_equity_curve(equity_curve: list[float], candles: pd.DataFrame, strategy_id: str) -> str:
+    def plot_equity_curve(
+        equity_curve: list[float], candles: pd.DataFrame, strategy_id: str, initial_balance: float
+    ) -> str:
         """Plots the equity curve and saves it to a file."""
         fig, ax = plt.subplots(figsize=(15, 7))
 
         # Ensure the equity curve and candle index have the same length for plotting
         if len(equity_curve) > len(candles.index):
-            equity_curve = equity_curve[:len(candles.index)]
+            equity_curve = equity_curve[: len(candles.index)]
         elif len(equity_curve) < len(candles.index):
-            candles = candles.iloc[:len(equity_curve)]
+            candles = candles.iloc[: len(equity_curve)]
 
         ax.plot(candles.index, equity_curve, label="Equity Curve", color="#007bff")
         ax.fill_between(candles.index, equity_curve, alpha=0.1, color="#007bff")
@@ -32,17 +56,18 @@ class Backtester:
         ax.grid(True, which="both", linestyle="--", linewidth=0.5)
 
         # Formatting the x-axis for dates
-        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
         fig.autofmt_xdate()
 
-        # Add a starting balance line
-        ax.axhline(y=candles.iloc[0]['open'], color='r', linestyle='--', label=f'Starting Price: ${candles.iloc[0]["open"]:,.2f}')
+        # Add a starting equity baseline (fix: use initial_balance, not first price)
+        ax.axhline(y=initial_balance, color="r", linestyle="--", label=f"Starting Equity: ${initial_balance:,.2f}")
 
         plt.legend()
         plt.tight_layout()
 
-        # Save the plot
-        plot_filename = f"backtest_plot_{strategy_id}.png"
+        # Save the plot (sanitize strategy_id for safety on various filesystems)
+        safe_id = _safe_filename(str(strategy_id))  # keep cwd behavior
+        plot_filename = f"backtest_plot_{safe_id}.png"
         plt.savefig(plot_filename)
         plt.close(fig)  # Close the figure to free memory
 
@@ -79,39 +104,38 @@ class Backtester:
             # --- Position Management ---
             # Close Long or Open Short
             if action == "sell":
-                if asset_qty > 0: # Close existing long
+                if asset_qty > 0:  # Close existing long
                     cash += asset_qty * price
-                    trades.append(cash - initial_balance) # Simple PnL for now
+                    trades.append(cash - initial_balance)  # Simple PnL for now
                     asset_qty = 0
                 # You could add logic here to open a short if asset_qty is 0
 
             # Close Short or Open Long
             elif action == "buy":
-                if asset_qty < 0: # Close existing short
+                if asset_qty < 0:  # Close existing short
                     cash += asset_qty * price
                     trades.append(cash - initial_balance)
                     asset_qty = 0
-                elif asset_qty == 0 and cash > 0: # Open new long
+                elif asset_qty == 0 and cash > 0:  # Open new long
                     asset_qty = cash / price
                     cash = 0
 
-        # Final equity calculation
-        if equity_curve and equity_curve[-1] > 0:
+        # Final equity calculation (ensure single final append)
+        if equity_curve:
             final_equity = cash + (asset_qty * ind_df.iloc[-1]["close"])
-            equity_curve.append(final_equity)
+            if equity_curve[-1] != final_equity:
+                equity_curve.append(final_equity)
 
         metrics = Backtester.calculate_metrics(equity_curve, trades, initial_balance)
 
         if generate_plot:
-            plot_file = Backtester.plot_equity_curve(equity_curve, candles, strategy.id)
+            plot_file = Backtester.plot_equity_curve(equity_curve, candles, strategy.id, initial_balance)
             metrics["plot_file"] = plot_file
 
         return metrics
 
     @staticmethod
-    def calculate_metrics(
-        equity_curve: list[float], trades: list[float], initial_balance: float
-    ) -> dict:
+    def calculate_metrics(equity_curve: list[float], trades: list[float], initial_balance: float) -> dict:
         if not trades:
             return {
                 "total_return_pct": 0,
@@ -132,23 +156,19 @@ class Backtester:
         # A more robust way to calculate drawdown to avoid division issues
         peak = equity_series.cummax()
         if peak.iloc[-1] == 0 or peak.empty:
-             max_drawdown_pct = -100.0
+            max_drawdown_pct = -100.0
         else:
             drawdown = (equity_series / peak) - 1
             max_drawdown_pct = drawdown.min() * 100
 
         # Sharpe Ratio (assuming risk-free rate is 0 and daily returns)
         returns = equity_series.pct_change().dropna()
-        sharpe_ratio = (
-            (returns.mean() / returns.std()) * np.sqrt(252) if returns.std() != 0 else 0
-        )  # Annualized
+        sharpe_ratio = (returns.mean() / returns.std()) * np.sqrt(252) if returns.std() != 0 else 0  # Annualized
 
         # Sortino Ratio
         negative_returns = returns[returns < 0]
         downside_std = negative_returns.std()
-        sortino_ratio = (
-            (returns.mean() / downside_std) * np.sqrt(252) if downside_std != 0 else 0
-        )  # Annualized
+        sortino_ratio = (returns.mean() / downside_std) * np.sqrt(252) if downside_std != 0 else 0  # Annualized
 
         # Win Rate
         wins = sum(1 for t in trades if t > 0)

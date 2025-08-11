@@ -1,6 +1,23 @@
 {
   "simulation": {
-    "initial_balance": 10000
+    "initial_balance": 10000,
+    "transaction_cost_pct": 0.001,
+    "slippage_pct": 0.0005,
+    "min_trade_size": 100,
+    "position_sizing": {
+      "method": "fixed_fraction",
+      "risk_per_trade": 0.02,
+      "max_position_size": 1.0,
+      "kelly_lookback": 50,
+      "kelly_fraction": 0.25
+    },
+    "risk_management": {
+      "max_drawdown_stop": 0.2,
+      "daily_loss_limit": 0.05,
+      "max_consecutive_losses": 5,
+      "enable_stop_loss": true,
+      "enable_take_profit": true
+    }
   },
   "genetic_algorithm": {
     "parameters": {
@@ -12,6 +29,15 @@
       "tournament_k": 5,
       "mutation_step_divisor": 10
     },
+    "operators": {
+      "crossover": "uniform",
+      "mutation": "gaussian"
+    },
+    "early_stopping": {
+      "patience": 8,
+      "min_improve": 1e-5
+    },
+    "mutation_decay": 0.98,
     "param_ranges": {
       "rsi_length": [8, 20],
       "macd_fast": [8, 15],
@@ -24,7 +50,21 @@
       "stoch_k": [10, 20],
       "stoch_d": [3, 7],
       "stoch_smooth_k": [3, 7],
-      "atr_length": [10, 21]
+      "atr_length": [10, 21],
+      "cci_length": [10, 40],
+      "wr_length": [10, 30],
+      "kc_length": [10, 40],
+      "kc_mult": [1.5, 3.5],
+      "donchian_length": [10, 50],
+      "hull_length": [8, 40],
+      "vwap_length": [20, 100],
+      "roc_length": [10, 30],
+      "cmo_length": [10, 30],
+      "trix_length": [14, 30],
+      "chaikin_vol_length": [10, 30],
+      "hist_vol_length": [20, 60],
+      "trend_strength_length": [20, 50],
+      "vol_regime_length": [20, 100]
     },
     "threshold_ranges": {
       "rsi_oversold": [20, 35],
@@ -34,14 +74,60 @@
       "buy_strength": [0.3, 0.7],
       "sell_strength": [0.3, 0.7],
       "sl_atr_mult": [1.0, 3.0],
-      "tp_atr_mult": [1.0, 4.0]
+      "tp_atr_mult": [1.0, 4.0],
+      "volume_threshold": [0.5, 2.0],
+      "trend_threshold": [0.3, 0.8],
+      "volatility_threshold": [0.2, 0.8]
     },
     "weight_ranges": {
-      "rsi": [0.1, 1.0],
-      "macd": [0.1, 1.0],
-      "bollinger": [0.1, 1.0],
-      "ema_cross": [0.1, 1.0],
-      "stochastic": [0.1, 1.0]
+      "rsi": [0.0, 1.0],
+      "macd": [0.0, 1.0],
+      "bollinger": [0.0, 1.0],
+      "ema_cross": [0.0, 1.0],
+      "stochastic": [0.0, 1.0],
+      "cci": [0.0, 1.0],
+      "williams_r": [0.0, 1.0],
+      "keltner": [0.0, 1.0],
+      "donchian": [0.0, 1.0],
+      "hull": [0.0, 1.0],
+      "obv": [0.0, 1.0],
+      "vwap": [0.0, 1.0],
+      "volume_profile": [0.0, 1.0],
+      "roc": [0.0, 1.0],
+      "cmo": [0.0, 1.0],
+      "trix": [0.0, 1.0],
+      "chaikin_volatility": [0.0, 1.0],
+      "trend_strength": [0.0, 1.0],
+      "volatility_regime": [0.0, 1.0]
+    },
+    "fitness": {
+      "return_weight": 0.4,
+      "sharpe_weight": 0.3,
+      "drawdown_weight": 0.2,
+      "trade_frequency_weight": 0.1,
+      "min_trades": 10,
+      "max_drawdown_penalty": 2.0,
+      "sharpe_target": 1.0
     }
-  }
+  },
+  "walk_forward": {
+    "train_window_days": 252,
+    "test_window_days": 63,
+    "step_days": 21,
+    "min_train_days": 126,
+    "max_overfitting_ratio": 0.5,
+    "stability_threshold": 0.7
+  },
+  "multi_objective": {
+    "objectives": ["return", "sharpe", "drawdown", "stability"],
+    "pareto_size": 50,
+    "crowding_distance_weight": 0.1
+  },
+  "enhanced_backtesting": {
+    "monte_carlo_runs": 1000,
+    "confidence_levels": [0.05, 0.95],
+    "bootstrap_samples": 500,
+    "enable_detailed_analysis": true
+  },
+  "parallel": { "workers": 4 }
 }

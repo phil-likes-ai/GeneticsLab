@@ -14,3 +14,11 @@ analysis_plots/
 # IDE / Editor specific
 .vscode/
 .idea/
+.venv/lib/python3.11/site-packages/pip/_vendor/rich/live_render.py
+/.venv
+/.venv
+/.venv
+/.venv
+/.venv/bin
+/.venv
+/.venv

@@ -24,12 +24,14 @@ def _normalize_symbol(symbol: str) -> str:
     common_quotes = ["USDT", "BUSD", "BTC", "ETH", "USD"]
     for quote in common_quotes:
         if symbol.endswith(quote):
-            base = symbol[:-len(quote)]
+            base = symbol[: -len(quote)]
             return f"{base}/{quote}".upper()
     return symbol.upper()
 
+
 def _setup_logging(level: int = logging.INFO) -> None:
     logging.basicConfig(level=level, format="%(asctime)s - %(levelname)s - %(message)s")
+
 
 def _run_evolve(args: argparse.Namespace, cfg: Config, db: Database) -> None:
     """Handler for the 'evolve' command."""
@@ -43,11 +45,13 @@ def _run_evolve(args: argparse.Namespace, cfg: Config, db: Database) -> None:
         end_ts=args.end_ts,
     )
 
+
 def _run_backtest(args: argparse.Namespace, cfg: Config, db: Database) -> None:
     """Handler for the 'backtest' command."""
-    print(f"Running backtest for strategy {args.strategy_id}...")
+    logger = logging.getLogger(__name__)
+    logger.info(f"Running backtest for strategy {args.strategy_id}...")
 
-    # Load the strategy
+    # Load the strategy (new canonical name; legacy alias still supported)
     strategy = db.load_strategy_by_id(args.strategy_id)
     if not strategy:
         logging.error(f"Strategy with ID '{args.strategy_id}' not found.")
@@ -71,24 +75,21 @@ def _run_backtest(args: argparse.Namespace, cfg: Config, db: Database) -> None:
 
     # Run the backtest
     results = Backtester.run(
-        strategy,
-        candles,
-        initial_balance=cfg["simulation"]["initial_balance"],
-        generate_plot=args.plot
+        strategy, candles, initial_balance=cfg["simulation"]["initial_balance"], generate_plot=args.plot
     )
 
-    # Print the results
-    print("--- Backtest Results ---")
+    # Log the results
+    logger.info("--- Backtest Results ---")
     for key, value in results.items():
-        if key != 'equity_curve':
-            print(f"{key.replace('_', ' ').title()}: {value}")
+        if key != "equity_curve":
+            logger.info(f"{key.replace('_', ' ').title()}: {value}")
 
-    if 'plot_path' in results:
-        print(f"Equity curve plot saved to: {results['plot_path']}")
+    # Standardized plot key
+    if "plot_file" in results:
+        logger.info(f"Equity curve plot saved to: {results['plot_file']}")
 
-def _fetch_and_save(
-    db: Database, exchange: str, symbol: str, timeframe: str, since: str
-) -> None:
+
+def _fetch_and_save(db: Database, exchange: str, symbol: str, timeframe: str, since: str) -> None:
     """Helper to fetch and save candles for a single market."""
     try:
         latest_ts = db.get_latest_timestamp(symbol, timeframe)
@@ -123,6 +124,7 @@ def _fetch_and_save(
     except Exception as e:
         logging.error(f"An error for {symbol}/{timeframe}: {e}")
 
+
 def _run_fetch_data(args: argparse.Namespace, db: Database) -> None:
     """Handler for the 'fetch-data' command."""
     if args.all:
@@ -148,13 +150,17 @@ def _run_fetch_data(args: argparse.Namespace, db: Database) -> None:
                 )
     else:
         if not all([args.symbol, args.timeframe, args.since]):
-            print("Error: --symbol, --timeframe, and --since are required unless using --all.")
+            logging.getLogger(__name__).warning(
+                "Error: --symbol, --timeframe, and --since are required unless using --all."
+            )
             return
         _fetch_and_save(db, args.exchange, args.symbol, args.timeframe, args.since)
+
 
 def _run_analyze(args: argparse.Namespace, db: Database) -> None:
     """Handler for the 'analyze' command."""
     view_results(db, top_n=args.limit, visualize=args.visualize, report=args.report)
+
 
 def main() -> None:  # pragma: no cover
     """Main CLI entry point."""

@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 from pathlib import Path
+import logging
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -11,14 +12,17 @@ from mpl_toolkits.mplot3d import Axes3D  # Required for 3D plotting
 
 from .database import Database
 
+logger = logging.getLogger(__name__)
+
 
 def visualize_results(df: pd.DataFrame, output_dir: Path) -> None:
     """Generates and saves all visualizations for the top strategies."""
     if df.empty:
+        logger.warning("No data provided to visualize_results; skipping visualization.")
         return
 
     output_dir.mkdir(exist_ok=True)
-    print(f"\n--- Generating Visualizations in {output_dir} ---")
+    logger.info(f"Generating visualizations in {output_dir}")
 
     # 1. Fitness Distribution
     plt.figure(figsize=(12, 7))
@@ -29,7 +33,7 @@ def visualize_results(df: pd.DataFrame, output_dir: Path) -> None:
     fitness_plot_path = output_dir / "fitness_distribution.png"
     plt.savefig(fitness_plot_path)
     plt.close()
-    print(f"Saved fitness distribution plot to {fitness_plot_path}")
+    logger.info(f"Saved fitness distribution plot to {fitness_plot_path}")
 
     # 2. Parameter Correlation Heatmap
     numeric_cols = df.select_dtypes(include=["number"]).columns
@@ -42,32 +46,41 @@ def visualize_results(df: pd.DataFrame, output_dir: Path) -> None:
     heatmap_plot_path = output_dir / "parameter_heatmap.png"
     plt.savefig(heatmap_plot_path, bbox_inches="tight")
     plt.close()
-    print(f"Saved parameter heatmap to {heatmap_plot_path}")
+    logger.info(f"Saved parameter heatmap to {heatmap_plot_path}")
 
     # 3. Key Parameter Distributions
-    dist_cols = [c for c in df.columns if c.startswith(('params.', 'thresholds.')) and len(df[c].unique()) > 1][:9]
+    dist_cols = [c for c in df.columns if c.startswith(("params.", "thresholds.")) and len(df[c].unique()) > 1][:9]
     if dist_cols:
         num_plots = len(dist_cols)
         num_cols = 3
         num_rows = (num_plots + num_cols - 1) // num_cols
         fig, axes = plt.subplots(num_rows, num_cols, figsize=(20, 5 * num_rows), constrained_layout=True)
         axes = axes.flatten()
-        fig.suptitle('Distributions of Key Strategy Parameters', fontsize=22)
+        fig.suptitle("Distributions of Key Strategy Parameters", fontsize=22)
         for i, col in enumerate(dist_cols):
             sns.histplot(df[col], kde=True, ax=axes[i])
             axes[i].set_title(col, fontsize=14)
-            axes[i].set_xlabel('')
-            axes[i].set_ylabel('')
+            axes[i].set_xlabel("")
+            axes[i].set_ylabel("")
         for i in range(num_plots, len(axes)):
             fig.delaxes(axes[i])
         param_dist_path = output_dir / "parameter_distributions.png"
         plt.savefig(param_dist_path)
         plt.close()
-        print(f"Saved parameter distributions plot to {param_dist_path}")
+        logger.info(f"Saved parameter distributions plot to {param_dist_path}")
 
     # 4. 2D Performance Scatter Plot
     plt.figure(figsize=(12, 8))
-    sns.scatterplot(data=df, x="win_rate", y="profit_factor", size="trades", hue="fitness", palette="viridis", sizes=(50, 500), alpha=0.7)
+    sns.scatterplot(
+        data=df,
+        x="win_rate",
+        y="profit_factor",
+        size="trades",
+        hue="fitness",
+        palette="viridis",
+        sizes=(50, 500),
+        alpha=0.7,
+    )
     plt.title("Strategy Performance: Win Rate vs. Profit Factor")
     plt.xlabel("Win Rate")
     plt.ylabel("Profit Factor")
@@ -76,26 +89,35 @@ def visualize_results(df: pd.DataFrame, output_dir: Path) -> None:
     scatter_plot_path = output_dir / "performance_scatterplot.png"
     plt.savefig(scatter_plot_path)
     plt.close()
-    print(f"Saved performance scatter plot to {scatter_plot_path}")
+    logger.info(f"Saved performance scatter plot to {scatter_plot_path}")
 
     # 5. 3D Scatter Plot of Fitness, Win Rate, and Profit Factor
     fig = plt.figure(figsize=(12, 10))
-    ax = fig.add_subplot(111, projection='3d')
-    sc = ax.scatter(df['win_rate'], df['profit_factor'], df['fitness'], c=df['fitness'], cmap='viridis', s=df['trades']/df['trades'].max()*200+50, alpha=0.8)
-    ax.set_xlabel('Win Rate')
-    ax.set_ylabel('Profit Factor')
-    ax.set_zlabel('Fitness')
-    ax.set_title('3D View: Fitness, Win Rate, and Profit Factor')
-    plt.colorbar(sc, label='Fitness Score')
+    ax = fig.add_subplot(111, projection="3d")
+    sc = ax.scatter(
+        df["win_rate"],
+        df["profit_factor"],
+        df["fitness"],
+        c=df["fitness"],
+        cmap="viridis",
+        s=df["trades"] / df["trades"].max() * 200 + 50,
+        alpha=0.8,
+    )
+    ax.set_xlabel("Win Rate")
+    ax.set_ylabel("Profit Factor")
+    ax.set_zlabel("Fitness")
+    ax.set_title("3D View: Fitness, Win Rate, and Profit Factor")
+    plt.colorbar(sc, label="Fitness Score")
     threed_scatter_path = output_dir / "3d_scatter_plot.png"
     plt.savefig(threed_scatter_path)
     plt.close()
-    print(f"Saved 3D scatter plot to {threed_scatter_path}")
+    logger.info(f"Saved 3D scatter plot to {threed_scatter_path}")
 
 
 def generate_html_report(df: pd.DataFrame, output_dir: Path) -> None:
     """Generates a static HTML report with embedded plots and data."""
     if df.empty:
+        logger.warning("No data provided to generate_html_report; skipping report generation.")
         return
 
     top_strategy = df.iloc[0]
@@ -116,23 +138,23 @@ def generate_html_report(df: pd.DataFrame, output_dir: Path) -> None:
     def series_to_html_table(series, title):
         table = f'<h3>{title}</h3><table class="param-table">'
         for idx, val in series.items():
-            name = idx.split('.')[-1].replace('_', ' ').title()
-            val_str = f'{val:.4f}' if isinstance(val, float) else str(val)
-            table += f'<tr><td><strong>{name}</strong></td><td>{val_str}</td></tr>'
-        return table + '</table>'
+            name = idx.split(".")[-1].replace("_", " ").title()
+            val_str = f"{val:.4f}" if isinstance(val, float) else str(val)
+            table += f"<tr><td><strong>{name}</strong></td><td>{val_str}</td></tr>"
+        return table + "</table>"
 
     params_html = series_to_html_table(top_strategy.filter(like="params."), "Indicator Parameters")
     thresholds_html = series_to_html_table(top_strategy.filter(like="thresholds."), "Trading Thresholds")
     weights_html = series_to_html_table(top_strategy.filter(like="weights."), "Indicator Weights")
 
     def generate_formula_html(strategy):
-        weights = strategy.filter(like='weights.')
-        thresholds = strategy.filter(like='thresholds.')
+        weights = strategy.filter(like="weights.")
+        thresholds = strategy.filter(like="thresholds.")
         buy_conditions = [f"({w:.2f} * {name.split('.')[-1]})" for name, w in weights.items()]
         buy_formula = " + ".join(buy_conditions)
 
-        buy_threshold = thresholds.get('thresholds.buy', 'N/A')
-        sell_threshold = thresholds.get('thresholds.sell', 'N/A')
+        buy_threshold = thresholds.get("thresholds.buy", "N/A")
+        sell_threshold = thresholds.get("thresholds.sell", "N/A")
 
         buy_threshold_str = f"{buy_threshold:.2f}" if isinstance(buy_threshold, (int, float)) else buy_threshold
         sell_threshold_str = f"{sell_threshold:.2f}" if isinstance(sell_threshold, (int, float)) else sell_threshold
@@ -147,7 +169,7 @@ def generate_html_report(df: pd.DataFrame, output_dir: Path) -> None:
         return html
 
     formula_html = generate_formula_html(top_strategy)
-    strategies_table_html = df.to_html(index=False, classes='data-table')
+    strategies_table_html = df.to_html(index=False, classes="data-table")
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -261,23 +283,67 @@ def generate_html_report(df: pd.DataFrame, output_dir: Path) -> None:
     with report_path.open("w") as f:
         f.write(html_content)
 
-    print(f"\n--- HTML Report Generation ---")
-    print(f"Saved HTML report to {report_path}")
+    logger.info("HTML Report Generation complete")
+    logger.info(f"Saved HTML report to {report_path}")
 
 
 def view_results(db: Database, top_n: int = 20, visualize: bool = False, report: bool = False) -> None:
     """Fetches and displays top N strategies from the database."""
-    print(f"--- Top {top_n} Strategies ---")
+    logger.info(f"Top {top_n} Strategies")
     strategies_df = db.get_all_strategies(limit=top_n)
 
     if strategies_df.empty:
-        print("No strategies found in the database.")
+        logger.warning("No strategies found in the database.")
         return
 
     expanded_df = strategies_df.copy()
+
+    # Define default values for new parameters to handle legacy strategies
+    default_params = {
+        'vwap_length': 20,
+        'roc_length': 14,
+        'cmo_length': 14,
+        'trix_length': 14,
+        'chaikin_vol_length': 14,
+        'hist_vol_length': 20,
+        'trend_strength_length': 20,
+        'vol_regime_length': 50,
+        'volume_profile_length': 20,
+        'market_state_length': 20
+    }
+
+    default_thresholds = {
+        'volume_threshold': 1.0,
+        'trend_threshold': 0.5,
+        'volatility_threshold': 0.5
+    }
+
+    default_weights = {
+        'vwap': 0.0,
+        'volume_profile': 0.0,
+        'roc': 0.0,
+        'cmo': 0.0,
+        'trix': 0.0,
+        'chaikin_volatility': 0.0,
+        'trend_strength': 0.0,
+        'volatility_regime': 0.0
+    }
+
+    defaults_map = {
+        'params': default_params,
+        'thresholds': default_thresholds,
+        'weights': default_weights
+    }
+
     for col_name in ["params", "thresholds", "weights"]:
         if col_name in expanded_df.columns:
             json_data = expanded_df[col_name].apply(json.loads)
+
+            # Fill missing keys with default values for legacy strategies
+            defaults = defaults_map.get(col_name, {})
+            if defaults:
+                json_data = json_data.apply(lambda x: {**defaults, **x})
+
             normalized_df = pd.json_normalize(json_data).add_prefix(f"{col_name}.")
             expanded_df = expanded_df.drop(col_name, axis=1).join(normalized_df)
 
@@ -285,13 +351,16 @@ def view_results(db: Database, top_n: int = 20, visualize: bool = False, report:
     pd.set_option("display.max_columns", 50)
     pd.set_option("display.width", 250)
 
-    print(expanded_df)
+    # Keep DataFrame output but standardize via logger to avoid bare prints
+    logger.info("\n" + expanded_df.to_string(index=False))
 
     output_dir = Path("analysis_plots")
     if visualize or report:
         output_dir.mkdir(exist_ok=True)
         if visualize or report:
+            logger.info(f"Creating visualizations in {output_dir}")
             visualize_results(expanded_df, output_dir)
-        
+
         if report:
+            logger.info(f"Generating HTML report in {output_dir}")
             generate_html_report(expanded_df, output_dir)
